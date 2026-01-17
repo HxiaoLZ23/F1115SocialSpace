@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.form1115.crm.mapper.AccountMapper">
+
+    <resultMap id="BaseResultMap" type="com.form1115.crm.domain.Account">
+            <id property="id" column="id" />
+            <result property="username" column="username" />
+            <result property="pwd" column="pwd" />
+            <result property="imgUrl" column="img_url" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,username,pwd,img_url,create_time,update_time,role
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where  id = #{id} 
+    </select>
+
+    <!-- 登录操作 -->
+    <select id="login" parameterType="com.form1115.crm.dto.AccountDto" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where username = #{username} and pwd = #{pwd}
+    </select>
+
+    <!-- 查询账户列表 -->
+    <select id="selectAccountsList" resultType="com.form1115.crm.domain.Account" resultMap="BaseResultMap" >
+        select
+            <include refid="Base_Column_List" />
+            from
+                account
+    </select>
+    <!-- 根据用户名查询账户信息 -->
+    <select id="selectAccountByUserName" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from
+        account
+        where username = #{arg0}
+    </select>
+
+    <!-- 根据ID查询密码 -->
+    <select id="selectAccountPwdById" resultType="java.lang.String">
+        select pwd from account where id = #{id}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from account
+        where  id = #{id} 
+    </delete>
+    <insert id="insert" parameterType="String" >
+        insert into account
+        (username,pwd,create_time,role)
+        values (#{arg0},'e10adc3949ba59abbe56e057f20f883epwd',now(),0)
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.form1115.crm.domain.Account" useGeneratedKeys="true">
+        insert into account
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="username != null">username,</if>
+                <if test="pwd != null">pwd,</if>
+                <if test="imgUrl != null">img_url,</if>
+                <if test="createTime != null">create_time,</if>
+                <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id},</if>
+                <if test="username != null">#{username},</if>
+                <if test="pwd != null">#{pwd},</if>
+                <if test="imgUrl != null">#{imgUrl},</if>
+                <if test="createTime != null">#{createTime},</if>
+                <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.form1115.crm.domain.Account">
+        update account
+        <set>
+                <if test="username != null">
+                    username = #{username},
+                </if>
+                <if test="pwd != null">
+                    pwd = #{pwd},
+                </if>
+                <if test="imgUrl != null">
+                    img_url = #{imgUrl},
+                </if>
+                <if test="createTime != null">
+                    create_time = #{createTime},
+                </if>
+                <if test="updateTime != null">
+                    update_time = #{updateTime},
+                </if>
+        </set>
+        where   id = #{id} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.form1115.crm.domain.Account">
+        update account
+        set 
+            username =  #{username},
+            pwd =  #{pwd},
+            img_url =  #{imgUrl},
+            create_time =  #{createTime},
+            update_time =  #{updateTime}
+        where   id = #{id} 
+    </update>
+    <!-- 重置密码 根据id将账户的密码设置初始值(123456) 只有超级管理员才有权限 -->
+    <update id="updateResetAccountPwd" parameterType="long">
+        update account
+        set
+            pwd =  'e10adc3949ba59abbe56e057f20f883epwd',
+            update_time = now()
+        where   id = #{id}
+    </update>
+
+    <!-- 修改头像 -->
+    <update id="updateAccountImgUrl">
+        UPDATE account SET img_url = #{arg0} WHERE id = #{arg1}
+    </update>
+
+    <!-- 修改密码 -->
+    <update id="updateAccountPwd">
+        UPDATE account SET pwd = #{arg0} WHERE id = #{arg1}
+    </update>
+
+
+</mapper>

@@ -5,11 +5,11 @@
          version="6.0">
     <!-- 设置默认首页 -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>/views/login.html</welcome-file>
     </welcome-file-list>
 
 
-    <!-- 配置编码过滤器解决乱码问题 -->
+    <!-- 设置过滤器解决乱码问题 -->
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -18,12 +18,13 @@
             <param-value>UTF-8</param-value>
         </init-param>
     </filter>
+
     <filter-mapping>
         <filter-name>encodingFilter</filter-name>
         <servlet-name>crm</servlet-name>
     </filter-mapping>
 
-    <!-- 配置监听器 读取Sping-context.xml -->
+    <!-- 配置监听器 读取Spring-context.xml -->
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath:spring-context.xml</param-value>
@@ -31,7 +32,6 @@
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
-
 
     <!-- 配置中央处理器 -->
     <servlet>
@@ -43,6 +43,7 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
     <servlet-mapping>
         <servlet-name>crm</servlet-name>
         <url-pattern>*.do</url-pattern>

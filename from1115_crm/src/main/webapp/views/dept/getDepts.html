@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>部门管理</title>
+
+    <!-- 引入element-ui -->
+    <link  rel="stylesheet" href="/resources/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入vue -->
+    <script type="text/javascript" src="/resources/js/vue.js"></script>
+    <script type="text/javascript" src="/resources/element-ui/lib/index.js"></script>
+    <!-- 引入axios -->
+    <script type="text/javascript" src="/resources/js/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!--顶部菜单：添加、批量删除、搜索-->
+        <el-row type="flex" justify="space-between">
+            <el-col :span="4">
+                <el-button type="success" icon="el-icon-plus" size="small" @click="addDeptWin" >添加</el-button>
+            </el-col>
+
+        </el-row>
+        <!--在顶部工具栏和表格之间添加间隙-->
+        <div style="margin: 5px"></div>
+
+        <el-table
+                :data="deptList"
+                border>
+            <el-table-column label="序号" align="center"  type="index" width="60"></el-table-column>
+            <el-table-column label="主键" align="center" prop="id"  ></el-table-column>
+            <el-table-column label="部门名称" align="center" prop="name" ></el-table-column>
+            <el-table-column label="部门地址" align="center" prop="loc" ></el-table-column>
+            <el-table-column label="创建时间" align="center" prop="createTime" :formatter="createTimeFmt" ></el-table-column>
+            <el-table-column label="修改时间" align="center" prop="updateTime" :formatter="updateTimeFmt" ></el-table-column>
+
+        </el-table>
+
+        <!-- 分页组件 -->
+        <el-pagination
+                :total="total"
+                :current-page="pageNum"
+                :page-size="pageSize"
+                :page-sizes="pageSizes"
+                @current-change="currentChange"
+                @size-change="sizeChange"
+                backgroud
+                layout="total,sizes,prev,pager,next,jumper"
+        >
+        </el-pagination>
+
+
+        <!--添加账户弹窗-->
+        <el-dialog
+                :visible.sync="addDeptStatus" title="添加部门" @close="addDeptClose" >
+            <el-form :rules="formRules"
+                     :model="addDeptFormData"
+                     ref="addDeptRef"
+            >
+                <el-form-item prop="name" label="部门名称" label-width="120px" >
+                    <el-input v-model="addDeptFormData.name" prefix-icon="el-icon-user" placeholder="请输入部门名称"></el-input>
+                </el-form-item>
+
+                <el-form-item prop="name" label="部门地址" label-width="120px" >
+                    <el-input v-model="addDeptFormData.loc" prefix-icon="el-icon-user" placeholder="请输入部门地址"></el-input>
+                </el-form-item>
+
+                <el-form-item label="" label-width="60px">
+                    <el-button type="primary" icon="el-icon-check" @click="addDeptOk" >确定</el-button>
+                    <el-button type="danger" icon="el-icon-close" @click="addDeptCancel">取消</el-button>
+                </el-form-item>
+
+            </el-form>
+        </el-dialog>
+
+    </div>
+
+
+    <!-- 引入自定js -->
+    <script type="text/javascript" src="/resources/js/dept/getDepts.js"></script>
+</body>
+</html>

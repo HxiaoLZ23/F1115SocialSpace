@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1115CRM后台管理平台</title>
+    <link rel="stylesheet" href="/resources/js/layuimini/lib/layui-v2.6.3/css/layui.css">
+    <script type="text/javascript" src="/resources/js/layuimini/lib/layui-v2.6.3/layui.js"></script>
+    <script type="text/javascript" src="/resources/js/main.js"></script>
+    <script type="text/javascript" src="/resources/js/axios.min.js"></script>
+    <script type="text/javascript">
+        let user = JSON.parse(window.localStorage.getItem("user"))
+        let username = user.username
+        window.onload=function () {
+            document.getElementById("username").innerHTML = "欢迎:"+username
+
+            document.getElementById("headImg").src="/download/downloadFile.do?imgUrl="+user.imgUrl
+        }
+
+        function loginout() {
+
+            axios({
+                url:"/account/editLoginToOut.do",
+                method:"POST"
+            }).then((result)=>{
+                let code = result.data.code
+                if (code == 200) {
+                    // 跳转到登录页面
+                    window.location.href="/views/login.html"
+                }
+            }).catch(()=>{
+                alert("退出失败")
+            })
+        }
+    </script>
+</head>
+<body>
+    <div class="layui-layout-admin">
+        <div class="layui-header">
+            <!--平台名称-->
+            <div class="layui-logo">Siki学院CRM后台管理平台</div>
+            <!--左侧主菜单-->
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item"><a href="#">日志设置</a></li>
+                <li class="layui-nav-item"><a href="#">系统设置</a></li>
+                <li class="layui-nav-item"><a href="#">统计</a></li>
+                <li class="layui-nav-item"><a href="#">帮助</a></li>
+            </ul>
+            <!--右侧主菜单-->
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;">
+                        <!-- 展示当前登录的用户名 -->
+                        <span id="username"></span>
+                        <img id="headImg" style="width: 40px;height: 40px">
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="#">修改头像</a></dd>
+                        <dd><a href="#">修改密码</a></dd>
+                        <dd><a id="logOut" onclick="loginout()">退出</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+        <div class="layui-side layui-bg-black">
+            <ul class="layui-nav layui-nav-tree" lay-filter="menu">
+                <li class="layui-nav-item"><a href="#" id="1" url="/views/user/getUsers.html"><i class="layui-icon layui-icon-user"></i>客户管理</a></li>
+                <li class="layui-nav-item">
+                    <a href="#"><i class="layui-icon layui-icon-delete"></i>账号管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="#" id="2" url="/views/account/getAccounts.html"><i class="layui-icon layui-icon-delete"></i>账号列表</a></dd>
+                        <dd><a href="#" id="3" url="/views/account/editHeadImg.html"><i class="layui-icon layui-icon-delete"></i>修改头像</a></dd>
+                        <dd><a href="#" id="4" url="/views/account/editPwd.html"><i class="layui-icon layui-icon-delete"></i>修改密码</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="#" id="1" url="/views/dept/getDepts.html"><i class="layui-icon layui-icon-user"></i>部门管理</a></li>
+            </ul>
+        </div>
+        <div class="layui-body">
+            <div class="layui-tab" lay-allowClose="true" lay-filter="zst">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">首页</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">欢迎使用Siki学院后台管理平台!</div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-footer">
+            <center>
+                2025-2099&copy;版权所有|维权必究
+            </center>
+        </div>
+    </div>
+</body>
+</html>

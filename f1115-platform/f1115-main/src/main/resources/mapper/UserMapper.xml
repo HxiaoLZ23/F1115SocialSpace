@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.form1115.f1115.main.mapper.UserMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.form1115.f1115.common.domain.UserProfile">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="email" property="email"/>
+        <result column="bio" property="bio"/>
+        <result column="status" property="status"/>
+        <result column="role" property="role"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, username, password, nickname, avatar, email, bio, status, role, create_time, update_time
+    </sql>
+
+    <!-- 根据用户名查询 -->
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_profile
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据邮箱查询 -->
+    <select id="selectByEmail" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_profile
+        WHERE email = #{email}
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_profile
+        WHERE id = #{id}
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.form1115.f1115.common.domain.UserProfile" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_profile (username, password, nickname, avatar, email, bio, status, role)
+        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{email}, #{bio}, #{status}, #{role})
+    </insert>
+
+    <!-- 更新用户信息 -->
+    <update id="update" parameterType="com.form1115.f1115.common.domain.UserProfile">
+        UPDATE user_profile
+        <set>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="bio != null">bio = #{bio},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新密码 -->
+    <update id="updatePassword">
+        UPDATE user_profile
+        SET password = #{password}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新头像 -->
+    <update id="updateAvatar">
+        UPDATE user_profile
+        SET avatar = #{avatar}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询用户统计信息 -->
+    <select id="selectUserWithStats" resultMap="BaseResultMap">
+        SELECT 
+            u.*,
+            (SELECT COUNT(*) FROM follow_relation WHERE follower_id = u.id) AS following_count,
+            (SELECT COUNT(*) FROM follow_relation WHERE following_id = u.id) AS follower_count,
+            (SELECT COUNT(*) FROM post WHERE user_id = u.id AND status = 1) AS post_count,
+            <if test="currentUserId != null">
+                (SELECT COUNT(*) FROM follow_relation 
+                 WHERE follower_id = #{currentUserId} AND following_id = u.id) > 0 AS is_followed
+            </if>
+        FROM user_profile u
+        WHERE u.id = #{id}
+    </select>
+
+</mapper>

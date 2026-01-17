@@ -2,35 +2,34 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx   http://www.springframework.org/schema/tx/spring-tx.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <!-- 组件扫描 扫描service层的实现类-->
-    <context:component-scan base-package="com.form1115.crm.service.impl"/>
+    <!-- 组件扫描 扫描service层的实现类 -->
+    <context:component-scan base-package="com.form1115.crm.service.impl" />
 
     <!-- 配置数据源文件 -->
     <context:property-placeholder location="classpath:db.properties" system-properties-mode="FALLBACK"/>
 
     <!-- 数据源的配置 -->
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="${jdbc.driverClassName}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
     </bean>
-
 
     <!-- 配置日志 -->
-    <bean id="Configuration" class="org.apache.ibatis.session.Configuration">
-        <property name="logImpl" value="org.apache.ibatis.logging.log4j.Log4jImpl"/>
-        <property name="cacheEnabled" value="true"/>
+    <bean id="configuration" class="org.apache.ibatis.session.Configuration">
+        <property name="logImpl" value="org.apache.ibatis.logging.log4j.Log4jImpl" />
+        <property name="cacheEnabled" value="true" />
     </bean>
 
-    <!-- 配置SqlSessionFactoryBean -->
+    <!-- 配置SQLsessionFactoryBean -->
     <bean id="sessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
         <!-- 指定数据源 -->
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="dataSource" />
         <!-- 指定mapper.xml文件的位置 -->
-        <!--<property name="mapperLocations" value="classpath:mapper/*.xml"/>-->
+        <property name="mapperLocations" value="classpath*:mapper/*.xml"/>
         <!-- 指定分页插件 -->
         <property name="plugins">
             <array>
@@ -41,7 +40,7 @@
         <property name="typeAliasesPackage" value="com.form1115.crm.domain"/>
 
         <!-- 配置日志 -->
-        <property name="configuration" ref="Configuration"/>
+        <property name="configuration" ref="configuration" />
     </bean>
 
     <!-- 配置Mapper接口 -->
@@ -49,12 +48,12 @@
         <property name="basePackage" value="com.form1115.crm.mapper"/>
     </bean>
 
-
     <!-- 配置事务 -->
+
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
     <!-- 开启事务注解 -->
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <tx:annotation-driven transaction-manager="transactionManager" />
 </beans>

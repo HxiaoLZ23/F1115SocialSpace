@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.form1115.crm.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.form1115.crm.domain.User">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+            <result property="gender" column="gender" jdbcType="VARCHAR"/>
+            <result property="tel" column="tel" jdbcType="VARCHAR"/>
+            <result property="sal" column="sal" jdbcType="FLOAT"/>
+            <result property="profession" column="profession" jdbcType="VARCHAR"/>
+            <result property="address" column="address" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+            <!--<result property="deptId" column="dept_id" jdbcType="BIGINT"/>-->
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+
+            <!-- 一对一结果封装 -->
+            <association property="dept" javaType="com.form1115.crm.domain.Dept">
+                <result property="name" column="name" />
+                <result property="loc" column="loc" />
+            </association>
+
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,username,birthday,
+        gender,tel,sal,
+        profession,address,remark,
+        dept_id,create_time,update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from user
+        where  id = #{id,jdbcType=BIGINT} 
+    </select>
+
+    <!-- 分页查询客户信息 -->
+    <select id="selectUsersByPage" resultMap="BaseResultMap">
+        SELECT u.*,d.name,d.loc FROM USER u INNER JOIN dept d ON u.`dept_id` = d.`id`
+    </select>
+
+    <!-- 根据ID删除单个客户的信息 -->
+    <delete id="deleteUserById" parameterType="Long">
+        DELETE FROM USER WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID删除多个客户信息 -->
+    <delete id="deleteManyUser" parameterType="String">
+        DELETE FROM USER WHERE id IN (${id})
+    </delete>
+    <!-- 查询部门是否存在 -->
+    <select id="selectDeptIsExist" resultType="java.lang.Integer">
+        select count(id) from dept where id = #{deptId};
+    </select>
+
+    <!-- 动态搜索客户信息 -->
+    <select id="selectUserBySearch" parameterType="com.form1115.crm.dto.UserSearchDto" resultMap="BaseResultMap">
+        SELECT u.*,d.name,d.loc FROM USER u INNER JOIN dept d ON u.`dept_id` = d.`id`
+        <where>
+            <if test="username!=null and username!=''">
+                u.username = #{username}
+            </if>
+            <if test="tel!=null and tel!=''">
+                AND u.tel = #{tel}
+            </if>
+            <if test="deptName!=null and deptName!=''">
+                AND d.name = #{deptName}
+            </if>
+            <if test="gender!=null and gender!=''">
+                AND u.gender = #{gender}
+            </if>
+
+        </where>
+    </select>
+
+    <!-- 根据id修改客户信息 -->
+    <update id="updateUserById" parameterType="com.form1115.crm.dto.UserDto">
+        UPDATE USER SET
+                        username = #{username},
+                        birthday = #{birthday},
+                        gender = #{gender},
+                        tel = #{tel},
+                        sal = #{sal},
+                        profession = #{profession},
+                        address = #{address},
+                        remark = #{remark},
+                        dept_id = #{deptId}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询客户是否已经添加 -->
+    <select id="selectUserIsExist" resultType="java.lang.Integer">
+        select count(id)
+        from
+            user
+                where
+                    username = #{username}
+                  and
+                    birthday = #{birthday}
+                  and
+                    address = #{address}
+                  and
+                    gender = #{gender}
+    </select>
+
+
+
+
+    <insert id="insertUser" parameterType="com.form1115.crm.dto.UserDto">
+        insert into user
+        (username,birthday
+        ,gender,tel,sal
+        ,profession,address,remark
+        ,dept_id,create_time,update_time
+        )
+        values (#{username,jdbcType=VARCHAR},#{birthday,jdbcType=TIMESTAMP}
+        ,#{gender,jdbcType=VARCHAR},#{tel,jdbcType=VARCHAR},#{sal,jdbcType=FLOAT}
+        ,#{profession,jdbcType=VARCHAR},#{address,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR}
+        ,#{deptId,jdbcType=BIGINT},#{createTime,jdbcType=TIMESTAMP},#{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+</mapper>

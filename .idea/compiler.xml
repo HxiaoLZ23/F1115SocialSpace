@@ -7,8 +7,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="from1115_crm" />
+        <module name="siki_crm" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="from1115_crm" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
