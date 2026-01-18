@@ -30,7 +30,7 @@
           text 
           size="small"
           :type="reply.isLiked ? 'primary' : 'default'"
-          @click.stop="$emit('toggle-like', reply.id)"
+          @click.stop="$emit('toggle-like', reply)"
         >
           <el-icon><component :is="reply.isLiked ? 'StarFilled' : 'Star'" /></el-icon>
           {{ reply.likeCount }}

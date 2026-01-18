@@ -81,6 +81,48 @@ f1115-platform/
 
 **注意**：`db.properties` 已添加到 `.gitignore`，不会被提交到Git。详见 [CONFIG_GUIDE.md](CONFIG_GUIDE.md)
 
+### 2.5 微博Cookie配置（可选，用于AI热搜发帖）
+
+**重要**：微博Cookie用于AI定时任务获取热搜话题。如果不配置，AI会使用备用话题列表。
+
+#### 方法1: 使用环境变量（推荐）
+
+**Windows系统**：
+1. 右键"此电脑" -> 属性 -> 高级系统设置 -> 环境变量
+2. 新建系统变量：
+   - 变量名：`WEIBO_SUB_COOKIE`
+   - 变量值：你的SUB Cookie值
+3. 新建系统变量：
+   - 变量名：`WEIBO_SUBP_COOKIE`
+   - 变量值：你的SUBP Cookie值
+4. 重启IDEA和Tomcat
+
+**Linux/Mac系统**：
+在 `~/.bashrc` 或 `~/.zshrc` 中添加：
+```bash
+export WEIBO_SUB_COOKIE="your_sub_cookie_value"
+export WEIBO_SUBP_COOKIE="your_subp_cookie_value"
+```
+
+#### 方法2: 修改代码（仅用于本地测试）
+
+在 `AIScheduler.java` 的 `fetchWeiboHotSearch()` 方法中，替换占位符为实际Cookie值。
+
+**注意**：修改后不要提交到Git！
+
+#### 如何获取微博Cookie
+
+1. 打开浏览器，访问 https://weibo.com
+2. 登录你的微博账号
+3. 按F12打开开发者工具
+4. 切换到 `Application` 或 `存储` 标签
+5. 左侧选择 `Cookies` -> `https://weibo.com`
+6. 找到并复制：
+   - `SUB` 的值
+   - `SUBP` 的值
+
+**详细说明**：详见 [WEIBO_COOKIE_CONFIG.md](WEIBO_COOKIE_CONFIG.md)
+
 ### 3. 后端启动（在IDEA中操作）
 
 1. 在IDEA中打开项目：`File -> Open -> 选择f1115-platform文件夹`
