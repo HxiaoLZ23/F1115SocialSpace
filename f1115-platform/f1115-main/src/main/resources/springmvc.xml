@@ -60,7 +60,7 @@
 
     <!-- 跨域配置 -->
     <mvc:cors>
-        <mvc:mapping path="/api/**"
+        <mvc:mapping path="/**"
                      allowed-origin-patterns="*"
                      allowed-methods="GET,POST,PUT,DELETE,OPTIONS"
                      allowed-headers="*"
