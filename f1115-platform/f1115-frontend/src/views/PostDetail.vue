@@ -167,45 +167,25 @@
                 </el-button>
               </div>
               
-              <!-- 回复列表 -->
+              <!-- 回复列表（递归显示多层级回复） -->
               <div v-if="comment.replies && comment.replies.length > 0" class="replies">
-                <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-                  <el-avatar 
-                    :src="getImageUrl(reply.user?.avatar)" 
-                    :size="30"
-                    class="clickable-avatar"
-                    @click="goToUserProfile(reply.userId)"
-                  >
-                    {{ reply.user?.nickname?.[0] || reply.user?.username?.[0] }}
-                  </el-avatar>
-                  <div class="reply-content">
-                    <div>
-                      <span class="reply-user clickable-name" @click="goToUserProfile(reply.userId)">
-                        {{ reply.user?.nickname || reply.user?.username }}
-                      </span>
-                      <span v-if="reply.parentComment" class="reply-to">
-                        回复 
-                        <span class="clickable-name" @click="goToUserProfile(reply.parentComment.userId)">
-                          {{ reply.parentComment.user?.nickname || reply.parentComment.user?.username }}
-                        </span>
-                      </span>
-                      : {{ reply.content }}
-                    </div>
-                    <div class="reply-footer">
-                      <span class="reply-time">{{ formatTime(reply.createTime) }}</span>
-                      <el-button text size="small" @click="handleReply(reply)">回复</el-button>
-                      <el-button 
-                        text 
-                        size="small"
-                        :type="reply.isLiked ? 'primary' : 'default'"
-                        @click.stop="handleToggleCommentLike(reply)"
-                      >
-                        <el-icon><component :is="reply.isLiked ? 'StarFilled' : 'Star'" /></el-icon>
-                        {{ reply.likeCount }}
-                      </el-button>
-                    </div>
-                  </div>
-                </div>
+                <ReplyItem
+                  v-for="reply in comment.replies"
+                  :key="reply.id"
+                  :reply="reply"
+                  :avatar-size="30"
+                  :replying-to="replyingTo"
+                  :reply-content="replyContent"
+                  :replying="replying"
+                  :get-image-url="getImageUrl"
+                  :format-time="formatTime"
+                  @go-to-profile="goToUserProfile"
+                  @reply="handleReply"
+                  @toggle-like="handleToggleCommentLike"
+                  @cancel-reply="replyingTo = null"
+                  @submit-reply="handleSubmitReply"
+                  @update:replyContent="replyContent = $event"
+                />
               </div>
               
               <!-- 回复输入框 -->
@@ -251,6 +231,7 @@ import { useUserStore } from '@/stores/user'
 import { getPostDetail } from '@/api/post'
 import { getComments, createComment, deleteComment } from '@/api/comment'
 import { togglePostLike, toggleCommentLike } from '@/api/like'
+import ReplyItem from '@/components/ReplyItem.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -353,6 +334,13 @@ const handleSubmitComment = async () => {
 const handleReply = (comment) => {
   replyingTo.value = comment
   replyContent.value = ''
+  // 滚动到回复输入框（确保可见）
+  setTimeout(() => {
+    const replyInput = document.querySelector('.reply-input')
+    if (replyInput) {
+      replyInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, 100)
 }
 
 // 提交回复
@@ -681,5 +669,21 @@ onMounted(() => {
   padding: 15px;
   background-color: #f5f7fa;
   border-radius: 8px;
+}
+
+/* 嵌套回复区域内的回复输入框 */
+.nested-replies .reply-input {
+  margin: 10px 0 0 0;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e4e7ed;
+}
+
+.nested-replies {
+  margin: 10px 0 0 40px;
+  padding: 10px;
+  background-color: #fafbfc;
+  border-left: 2px solid #e4e7ed;
+  border-radius: 4px;
 }
 </style>

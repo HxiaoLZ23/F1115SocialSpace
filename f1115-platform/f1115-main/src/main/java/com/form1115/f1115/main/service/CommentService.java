@@ -78,28 +78,40 @@ public class CommentService {
     
     /**
      * 获取帖子的评论列表（包含回复）
+     * 支持多层级回复结构（递归组织）
      */
     public List<Comment> getCommentsByPostId(Long postId, Long currentUserId) {
         // 查询所有评论
         List<Comment> allComments = commentMapper.selectCommentsByPostId(postId, currentUserId);
         
-        // 组织评论结构（一级评论 + 二级评论）
+        // 构建评论ID到评论对象的映射
+        Map<Long, Comment> commentMap = allComments.stream()
+                .collect(Collectors.toMap(Comment::getId, c -> c));
+        
+        // 组织评论结构（递归方式）
         Map<Long, List<Comment>> repliesMap = allComments.stream()
                 .filter(c -> c.getParentId() != null)
                 .collect(Collectors.groupingBy(Comment::getParentId));
         
-        // 获取一级评论
-        List<Comment> topLevelComments = allComments.stream()
-                .filter(c -> c.getParentId() == null)
-                .collect(Collectors.toList());
-        
-        // 为每个一级评论添加回复列表
-        for (Comment comment : topLevelComments) {
+        // 为所有评论设置回复列表
+        for (Comment comment : allComments) {
             List<Comment> replies = repliesMap.get(comment.getId());
             comment.setReplies(replies != null ? replies : new ArrayList<>());
         }
         
+        // 获取一级评论（parentId为null的评论）
+        List<Comment> topLevelComments = allComments.stream()
+                .filter(c -> c.getParentId() == null)
+                .collect(Collectors.toList());
+        
         return topLevelComments;
+    }
+    
+    /**
+     * 根据ID获取评论
+     */
+    public Comment getCommentById(Long commentId) {
+        return commentMapper.selectById(commentId);
     }
     
     /**

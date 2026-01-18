@@ -55,16 +55,20 @@ public class CommentController {
         // 发布评论
         Comment comment = commentService.createComment(postId, currentUser.getId(), content, parentId);
         
-        // 如果是回复AI的评论，异步触发AI回复
+        // 如果是回复评论（有parentId），检查是否是回复AI的评论，如果是则异步触发AI回复
         if (parentId != null) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(2000); // 延迟2秒再回复
-                    aiCommentService.replyToComment(comment.getId());
-                } catch (Exception e) {
-                    // 忽略错误
-                }
-            }).start();
+            Comment parentComment = commentService.getCommentById(parentId);
+            // 检查父评论是否是AI的评论（AI_USER_ID = 2L）
+            if (parentComment != null && parentComment.getUserId().equals(2L)) {
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(2000); // 延迟2秒再回复
+                        aiCommentService.replyToComment(comment.getId());
+                    } catch (Exception e) {
+                        // 忽略错误，记录日志即可
+                    }
+                }).start();
+            }
         }
         
         return Result.success("评论成功", comment);
