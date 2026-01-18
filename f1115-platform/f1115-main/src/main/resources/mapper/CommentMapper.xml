@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.form1115.f1115.main.mapper.CommentMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.form1115.f1115.common.domain.Comment">
+        <id column="id" property="id"/>
+        <result column="post_id" property="postId"/>
+        <result column="user_id" property="userId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="content" property="content"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="status" property="status"/>
+        <result column="type" property="type"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 评论详情结果映射（包含用户信息） -->
+    <resultMap id="DetailResultMap" type="com.form1115.f1115.common.domain.Comment" extends="BaseResultMap">
+        <association property="user" javaType="com.form1115.f1115.common.domain.UserProfile">
+            <id column="comment_user_id" property="id"/>
+            <result column="comment_username" property="username"/>
+            <result column="comment_nickname" property="nickname"/>
+            <result column="comment_avatar" property="avatar"/>
+        </association>
+        <association property="parentComment" javaType="com.form1115.f1115.common.domain.Comment">
+            <id column="parent_comment_id" property="id"/>
+            <result column="parent_user_id" property="userId"/>
+            <association property="user" javaType="com.form1115.f1115.common.domain.UserProfile">
+                <id column="parent_user_id" property="id"/>
+                <result column="parent_username" property="username"/>
+                <result column="parent_nickname" property="nickname"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, post_id, user_id, parent_id, content, like_count, status, type, create_time, update_time
+    </sql>
+
+    <!-- 插入评论 -->
+    <insert id="insert" parameterType="com.form1115.f1115.common.domain.Comment" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comment (post_id, user_id, parent_id, content, status, type, like_count)
+        VALUES (#{postId}, #{userId}, #{parentId}, #{content}, #{status}, #{type}, 0)
+    </insert>
+
+    <!-- 根据ID查询评论 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询帖子的评论列表（一级评论） -->
+    <select id="selectByPostId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE post_id = #{postId} AND parent_id IS NULL AND status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询评论的回复列表（二级评论） -->
+    <select id="selectRepliesByParentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE parent_id = #{parentId} AND status = 1
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- 删除评论（逻辑删除） -->
+    <update id="deleteById">
+        UPDATE comment
+        SET status = 0
+        WHERE id = #{id}
+    </update>
+
+    <!-- 增加点赞数 -->
+    <update id="incrementLikeCount">
+        UPDATE comment
+        SET like_count = like_count + 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 减少点赞数 -->
+    <update id="decrementLikeCount">
+        UPDATE comment
+        SET like_count = like_count - 1
+        WHERE id = #{id} AND like_count > 0
+    </update>
+
+    <!-- 查询评论详情 -->
+    <select id="selectDetailById" resultMap="DetailResultMap">
+        SELECT 
+            c.*,
+            u.id as comment_user_id,
+            u.username as comment_username,
+            u.nickname as comment_nickname,
+            u.avatar as comment_avatar,
+            <if test="currentUserId != null">
+                (SELECT COUNT(*) FROM comment_like 
+                 WHERE comment_id = c.id AND user_id = #{currentUserId}) > 0 AS is_liked
+            </if>
+        FROM comment c
+        LEFT JOIN user_profile u ON c.user_id = u.id
+        WHERE c.id = #{id}
+    </select>
+
+    <!-- 查询帖子的评论列表（包含用户信息和回复） -->
+    <select id="selectCommentsByPostId" resultMap="DetailResultMap">
+        SELECT 
+            c.*,
+            u.id as comment_user_id,
+            u.username as comment_username,
+            u.nickname as comment_nickname,
+            u.avatar as comment_avatar,
+            pc.id as parent_comment_id,
+            pc.user_id as parent_user_id,
+            pu.username as parent_username,
+            pu.nickname as parent_nickname,
+            <if test="currentUserId != null">
+                (SELECT COUNT(*) FROM comment_like 
+                 WHERE comment_id = c.id AND user_id = #{currentUserId}) > 0 AS is_liked
+            </if>
+        FROM comment c
+        LEFT JOIN user_profile u ON c.user_id = u.id
+        LEFT JOIN comment pc ON c.parent_id = pc.id
+        LEFT JOIN user_profile pu ON pc.user_id = pu.id
+        WHERE c.post_id = #{postId} AND c.status = 1
+        ORDER BY c.parent_id ASC, c.create_time ASC
+    </select>
+
+</mapper>

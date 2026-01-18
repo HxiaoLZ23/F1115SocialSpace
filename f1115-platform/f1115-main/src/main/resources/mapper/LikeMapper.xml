@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.form1115.f1115.main.mapper.LikeMapper">
+
+    <!-- 帖子点赞 -->
+    <insert id="insertPostLike">
+        INSERT INTO post_like (post_id, user_id)
+        VALUES (#{postId}, #{userId})
+    </insert>
+
+    <!-- 取消帖子点赞 -->
+    <delete id="deletePostLike">
+        DELETE FROM post_like
+        WHERE post_id = #{postId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 检查是否已点赞帖子 -->
+    <select id="checkPostLike" resultType="int">
+        SELECT COUNT(*)
+        FROM post_like
+        WHERE post_id = #{postId} AND user_id = #{userId}
+    </select>
+
+    <!-- 评论点赞 -->
+    <insert id="insertCommentLike">
+        INSERT INTO comment_like (comment_id, user_id)
+        VALUES (#{commentId}, #{userId})
+    </insert>
+
+    <!-- 取消评论点赞 -->
+    <delete id="deleteCommentLike">
+        DELETE FROM comment_like
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 检查是否已点赞评论 -->
+    <select id="checkCommentLike" resultType="int">
+        SELECT COUNT(*)
+        FROM comment_like
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </select>
+
+</mapper>

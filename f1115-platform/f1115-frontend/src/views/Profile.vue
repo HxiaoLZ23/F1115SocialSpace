@@ -59,7 +59,12 @@
                 <el-button v-if="isOwnProfile" type="primary" @click="showEditDialog = true">
                   编辑资料
                 </el-button>
-                <el-button v-else type="primary">
+                <el-button 
+                  v-else 
+                  :type="userInfo.isFollowed ? 'default' : 'primary'"
+                  @click="handleToggleFollow"
+                  :loading="following"
+                >
                   {{ userInfo.isFollowed ? '已关注' : '关注' }}
                 </el-button>
               </div>
@@ -119,11 +124,47 @@
             </el-tab-pane>
             
             <el-tab-pane label="关注" name="following">
-              <el-empty description="关注功能开发中..." />
+              <div class="user-list">
+                <el-card
+                  v-for="user in followingList"
+                  :key="user.id"
+                  class="user-card-item"
+                  @click="goToUserProfile(user.id)"
+                >
+                  <div class="user-item">
+                    <el-avatar :src="getImageUrl(user.avatar)" :size="50">
+                      {{ user.nickname?.[0] || user.username?.[0] }}
+                    </el-avatar>
+                    <div class="user-item-info">
+                      <div class="user-name">{{ user.nickname || user.username }}</div>
+                      <div class="user-bio">{{ user.bio || '暂无简介' }}</div>
+                    </div>
+                  </div>
+                </el-card>
+                <el-empty v-if="followingList.length === 0" description="还没有关注任何人" />
+              </div>
             </el-tab-pane>
             
             <el-tab-pane label="粉丝" name="followers">
-              <el-empty description="粉丝功能开发中..." />
+              <div class="user-list">
+                <el-card
+                  v-for="user in followersList"
+                  :key="user.id"
+                  class="user-card-item"
+                  @click="goToUserProfile(user.id)"
+                >
+                  <div class="user-item">
+                    <el-avatar :src="getImageUrl(user.avatar)" :size="50">
+                      {{ user.nickname?.[0] || user.username?.[0] }}
+                    </el-avatar>
+                    <div class="user-item-info">
+                      <div class="user-name">{{ user.nickname || user.username }}</div>
+                      <div class="user-bio">{{ user.bio || '暂无简介' }}</div>
+                    </div>
+                  </div>
+                </el-card>
+                <el-empty v-if="followersList.length === 0" description="还没有粉丝" />
+              </div>
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -163,12 +204,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { getUserInfo, updateProfile, uploadAvatar } from '@/api/user'
 import { getUserPosts } from '@/api/post'
+import { toggleFollow, getFollowing, getFollowers } from '@/api/follow'
 
 const router = useRouter()
 const route = useRoute()
@@ -182,6 +224,9 @@ const pageSize = ref(10)
 const total = ref(0)
 const showEditDialog = ref(false)
 const saving = ref(false)
+const following = ref(false)
+const followingList = ref([])
+const followersList = ref([])
 
 const editForm = ref({
   nickname: '',
@@ -289,6 +334,97 @@ const handleSaveProfile = async () => {
 const goToPostDetail = (postId) => {
   router.push(`/post/${postId}`)
 }
+
+// 跳转到用户主页
+const goToUserProfile = (userId) => {
+  // 使用replace而不是push，避免路由重复
+  if (route.params.userId !== userId.toString()) {
+    router.push(`/user/${userId}`)
+    // 重新加载数据
+    setTimeout(() => {
+      loadUserInfo()
+      loadUserPosts()
+      // 重置标签页
+      activeTab.value = 'posts'
+      followingList.value = []
+      followersList.value = []
+    }, 100)
+  }
+}
+
+// 关注/取消关注
+const handleToggleFollow = async () => {
+  if (!userStore.currentUser) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  
+  following.value = true
+  try {
+    const res = await toggleFollow(userInfo.value.id)
+    if (res.code === 200) {
+      // 切换关注状态
+      userInfo.value.isFollowed = !userInfo.value.isFollowed
+      userInfo.value.followerCount += userInfo.value.isFollowed ? 1 : -1
+      ElMessage.success(res.msg)
+    }
+  } finally {
+    following.value = false
+  }
+}
+
+// 加载关注列表
+const loadFollowing = async () => {
+  try {
+    const userId = route.params.userId || userStore.currentUser?.id
+    const res = await getFollowing(userId, 1, 100)
+    if (res.code === 200) {
+      followingList.value = res.data
+    }
+  } catch (error) {
+    console.error('加载关注列表失败', error)
+  }
+}
+
+// 加载粉丝列表
+const loadFollowers = async () => {
+  try {
+    const userId = route.params.userId || userStore.currentUser?.id
+    const res = await getFollowers(userId, 1, 100)
+    if (res.code === 200) {
+      followersList.value = res.data
+    }
+  } catch (error) {
+    console.error('加载粉丝列表失败', error)
+  }
+}
+
+// 监听标签页切换
+watch(activeTab, (newTab) => {
+  if (newTab === 'following') {
+    loadFollowing()
+  } else if (newTab === 'followers') {
+    loadFollowers()
+  }
+})
+
+// 监听路由变化，重新加载数据
+watch(() => route.params.userId, (newUserId, oldUserId) => {
+  if (newUserId && newUserId !== oldUserId) {
+    // 重置数据
+    userInfo.value = null
+    posts.value = []
+    followingList.value = []
+    followersList.value = []
+    activeTab.value = 'posts'
+    currentPage.value = 1
+    
+    // 重新加载
+    loadUserInfo()
+    loadUserPosts()
+  }
+})
 
 onMounted(() => {
   loadUserInfo()
@@ -452,5 +588,44 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.user-list {
+  min-height: 300px;
+}
+
+.user-card-item {
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-card-item:hover {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-item-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 5px;
+}
+
+.user-bio {
+  font-size: 14px;
+  color: #909399;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

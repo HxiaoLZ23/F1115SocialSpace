@@ -4,6 +4,7 @@ import com.form1115.f1115.common.domain.Post;
 import com.form1115.f1115.common.domain.UserProfile;
 import com.form1115.f1115.common.utils.Result;
 import com.form1115.f1115.main.service.PostService;
+import com.form1115.f1115.main.service.LikeService;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,9 @@ public class PostController {
     
     @Autowired
     private PostService postService;
+    
+    @Autowired
+    private LikeService likeService;
     
     private static final String SESSION_USER_KEY = "currentUser";
     
@@ -114,5 +118,20 @@ public class PostController {
         postService.deletePost(postId, currentUser.getId());
         
         return Result.success("删除成功");
+    }
+    
+    /**
+     * 点赞/取消点赞帖子
+     */
+    @PostMapping("/{postId}/like")
+    public Result toggleLike(@PathVariable Long postId, HttpSession session) {
+        UserProfile currentUser = (UserProfile) session.getAttribute(SESSION_USER_KEY);
+        if (currentUser == null) {
+            return Result.unauthorized();
+        }
+        
+        boolean liked = likeService.togglePostLike(postId, currentUser.getId());
+        
+        return Result.success(liked ? "点赞成功" : "取消点赞");
     }
 }
