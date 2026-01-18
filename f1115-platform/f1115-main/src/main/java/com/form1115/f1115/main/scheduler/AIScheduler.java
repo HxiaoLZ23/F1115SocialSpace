@@ -110,9 +110,9 @@ public class AIScheduler {
             logger.info("正在尝试抓取微博热搜");
 
             // 从环境变量或配置文件读取Cookie（生产环境应该这样做）
-            // 开发环境可以硬编码，但不提交到Git
-            String SUB = System.getenv("_2AkMfz4MRf8NxqwFRmvoWyGPnaYVyygHEieKpk3LKJRMxHRl-yT9xqlJbtRB6NE-t_sZGI14RVGs2WgKndW1IezGbJFlz");
-            String SUBP = System.getenv("0033WrSXqPxfM72-Ws9jqgMF55529P9D9WhE8eoZL2Sdflmn-OVsyxqZ");
+            // 开发环境可以硬编码，但不提交到GYOUR_WEIBO_SUB_COOKIE
+            String SUB = System.getenv("YOUR_WEIBO_SUB_COOKIE");
+            String SUBP = System.getenv("YOUR_WEIBO_SUBP_COOKIE");
             
             // 如果环境变量没有配置，使用默认值（仅用于开发测试）
             if (SUB == null || SUB.isEmpty()) {
